@@ -1,0 +1,44 @@
+name: 'Qazaq Localization QA (Flutter)'
+description: 'Automated linter for Kazakh Flutter localization: checks suffix harmony after placeholders and UI length overflow.'
+author: 'qazaq-loc-intelligence'
+branding:
+  icon: 'globe'
+  color: 'blue'
+
+inputs:
+  target-file:
+    description: 'Path to Kazakh localization file (.arb or .json)'
+    required: false
+    default: 'lib/l10n/app_kk.arb'
+  max-button-length:
+    description: 'Max character limit for *_button, *_tab, *_title keys'
+    required: false
+    default: '15'
+  fail-on-warnings:
+    description: 'Fail CI if UI length warnings are detected'
+    required: false
+    default: 'false'
+  json-output:
+    description: 'Path to export JSON violations report'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Run Qazaq Loc QA Linter
+      shell: bash
+      run: |
+        ARGS="${{ inputs.target-file }} --max-button-len ${{ inputs.max-button-length }}"
+        if [ "${{ inputs.fail-on-warnings }}" = "true" ]; then
+          ARGS="$ARGS --fail-on-warnings"
+        fi
+        if [ -n "${{ inputs.json-output }}" ]; then
+          ARGS="$ARGS --json-output ${{ inputs.json-output }}"
+        fi
+        python3 ${{ github.action_path }}/qazaq_loc_qa.py $ARGS
